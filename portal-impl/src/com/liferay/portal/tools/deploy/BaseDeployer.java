@@ -29,28 +29,14 @@ import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.servlet.SecurePluginContextListener;
 import com.liferay.portal.kernel.servlet.SecureServlet;
 import com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilter;
-import com.liferay.portal.kernel.util.CharPool;
-import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
-import com.liferay.portal.kernel.util.PropertiesUtil;
+import com.liferay.portal.kernel.util.*;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ServerDetector;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.SystemProperties;
-import com.liferay.portal.kernel.util.TextFormatter;
-import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.plugin.PluginPackageUtil;
 import com.liferay.portal.tools.WebXMLBuilder;
-import com.liferay.portal.util.ExtRegistry;
-import com.liferay.portal.util.InitUtil;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.*;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
@@ -2059,6 +2045,10 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			content = content.substring(0, x) + content.substring(y);
 		}
 
+        // strip comments, they are on the end stripped anyway
+        Html html = new HtmlImpl();
+        content = html.stripComments(content);
+
 		Document document = SAXReaderUtil.read(content);
 
 		Element rootElement = document.getRootElement();
@@ -2105,10 +2095,12 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 		String extraContent = getExtraContent(
 			webXmlVersion, srcFile, displayName);
 
-		int pos = content.indexOf("<listener>");
+		int pos = content.lastIndexOf("</listener>");
 
 		if (pos == -1) {
 			pos = content.indexOf("</web-app>");
+		} else {
+            pos += 11;
 		}
 
 		String newContent =
