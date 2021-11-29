@@ -560,7 +560,7 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 		updateGeronimoWebXml(srcFile, displayName, pluginPackage);
 
 		File webXml = new File(srcFile + "/WEB-INF/web.xml");
-
+		System.out.println("srcFile to deploy: " + srcFile);
 		updateWebXml(webXml, srcFile, displayName, pluginPackage);
 
 		File extLibGlobalDir = new File(
@@ -2095,12 +2095,22 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 		String extraContent = getExtraContent(
 			webXmlVersion, srcFile, displayName);
 
-		int pos = content.lastIndexOf("</listener>");
+		int pos = content.indexOf("<listener>");
 
 		if (pos == -1) {
 			pos = content.indexOf("</web-app>");
-		} else {
-            pos += 11;
+		}
+
+		// boolean mkformsDeploy = srcFile
+		// contains something mkforms specific
+		if (mkformsDeploy == true) {
+			pos = content.lastIndexOf("</listener>");
+
+			if (pos == -1) {
+				pos = content.indexOf("</web-app>");
+			} else {
+				pos += 11;
+			}
 		}
 
 		String newContent =
