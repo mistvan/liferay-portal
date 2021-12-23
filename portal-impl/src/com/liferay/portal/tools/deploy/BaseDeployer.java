@@ -2101,9 +2101,10 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			pos = content.indexOf("</web-app>");
 		}
 
-		// boolean mkformsDeploy = srcFile
-		// contains something mkforms specific
-		if (mkformsDeploy == true) {
+		// TODO update to contain something mkforms specific to enable
+		boolean mkformsDeploy = true;
+
+		if (mkformsDeploy) {
 			pos = content.lastIndexOf("</listener>");
 
 			if (pos == -1) {
