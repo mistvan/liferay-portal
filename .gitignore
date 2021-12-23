@@ -213,3 +213,5 @@ _sass_cache_*.css
 /util-taglib/classes
 /util-taglib/util-taglib*.asc
 /util-taglib/util-taglib*.jar
+
+.gradle
