@@ -2046,10 +2046,25 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 
 		int pos = content.lastIndexOf("</listener>");
 
-		if (pos == -1) {
-			pos = content.indexOf("</web-app>");
-		} else {
-            pos += 11;
+//		if (pos == -1) {
+//			pos = content.indexOf("</web-app>");
+//		} else {
+//            pos += 11;
+//		}
+
+		_log.info("MKF deploying " + webXml);
+		// TODO update to contain something mkforms specific to enable
+		boolean mkformsDeploy = true;
+
+		if (mkformsDeploy) {
+			_log.info("MKF fixing listeners order");
+			pos = content.lastIndexOf("</listener>");
+
+			if (pos == -1) {
+				pos = content.indexOf("</web-app>");
+			} else {
+				pos += 11;
+			}
 		}
 
 		String newContent =

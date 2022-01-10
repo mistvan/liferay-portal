@@ -23,10 +23,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.util.FileImpl;
 
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageDecoder;
-import com.sun.media.jai.codec.ImageEncoder;
-
 import java.awt.Graphics2D;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -42,8 +38,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import javax.media.jai.RenderedImageAdapter;
 
@@ -161,27 +160,22 @@ public class ImageToolImpl implements ImageTool {
 		RenderedImage renderedImage = null;
 		String type = TYPE_NOT_AVAILABLE;
 
-		Enumeration<ImageCodec> enu = ImageCodec.getCodecs();
+		try {
+			ImageInputStream iis = ImageIO.createImageInputStream(new UnsyncByteArrayInputStream(bytes));
 
-		while (enu.hasMoreElements()) {
-			ImageCodec codec = enu.nextElement();
+			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+			while (readers.hasNext()) {
+				ImageReader reader = readers.next();
+				reader.setInput(iis);
 
-			if (codec.isFormatRecognized(bytes)) {
-				type = codec.getFormatName();
-
-				ImageDecoder decoder = ImageCodec.createImageDecoder(
-					type, new UnsyncByteArrayInputStream(bytes), null);
-
-				try {
-					renderedImage = decoder.decodeAsRenderedImage();
-				}
-				catch (IOException ioe) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(type + ": " + ioe.getMessage());
-					}
-				}
+				type = reader.getFormatName().toLowerCase();
+				renderedImage = reader.readAsRenderedImage(0, null);
 
 				break;
+			}
+		} catch (IOException ioe) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(type + ": " + ioe.getMessage());
 			}
 		}
 
@@ -276,6 +270,7 @@ public class ImageToolImpl implements ImageTool {
 			int bits = indexColorModel.getPixelSize();
 			int size = indexColorModel.getMapSize();
 
+
 			byte[] reds = new byte[size];
 
 			indexColorModel.getReds(reds);
@@ -318,10 +313,7 @@ public class ImageToolImpl implements ImageTool {
 		throws IOException {
 
 		if (contentType.contains(TYPE_BMP)) {
-			ImageEncoder imageEncoder = ImageCodec.createImageEncoder(
-				TYPE_BMP, os, null);
-
-			imageEncoder.encode(renderedImage);
+			ImageIO.write(renderedImage, TYPE_BMP, os);
 		}
 		else if (contentType.contains(TYPE_GIF)) {
 			encodeGIF(renderedImage, os);
@@ -337,10 +329,7 @@ public class ImageToolImpl implements ImageTool {
 		else if (contentType.contains(TYPE_TIFF) ||
 				 contentType.contains("tif")) {
 
-			ImageEncoder imageEncoder = ImageCodec.createImageEncoder(
-				TYPE_TIFF, os, null);
-
-			imageEncoder.encode(renderedImage);
+			ImageIO.write(renderedImage, TYPE_TIFF, os);
 		}
 	}
 
